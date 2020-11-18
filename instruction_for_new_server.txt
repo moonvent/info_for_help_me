@@ -1,0 +1,167 @@
+====================================================
+
+==Create new user (for made all without root user) and give all privileges to
+new user:==
+
+adduser sammy && usermod -aG sudo sammy
+
+=====================================================
+
+==Setup filrewall:==
+
+ufw app list && ufw allow OpenSSH && ufw enable && ufw status
+
+!!!==Reload terminal and use SUDO ==!!!
+
+=====================================================
+
+==Upgrade linux and install my soft.==
+
+sudo apt update && sudo apt update && sudo apt install vim tmux -y
+
+tmux new-session -s server
+
+==After create new session do this:==
+
+Ctrl + B + "
+
+=====================================================
+
+
+Install need instruments for python with NGINX:
+
+sudo apt install python3-pip python3-dev libpq-dev nginx curl mysql-server python3-virtualenv -y 
+
+=====================================================
+
+================= SETUP MYSQL =======================
+
+== After that, setup mysql ant try connect from navicat == 
+
+sudo mysql_secure_installation
+
+If system request about VALIDATE PASSWORD -- N
+
+password: root
+
+Remove anon: Y
+
+Disallow: N
+
+Remove test db: Y
+
+Reload priv.: Y
+
+sudo mysql
+
+SELECT user,authentication_string,plugin,host FROM mysql.user;
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+
+FLUSH PRIVILEGES;
+
+exit;
+
+mysql -u root -p
+
+password
+
+CREATE USER 'sammy'@'localhost' IDENTIFIED BY 'password';
+
+GRANT ALL PRIVILEGES ON *.* TO 'sammy'@'localhost' WITH GRANT OPTION;
+
+exit;
+
+systemctl status mysql.service
+
+================= SETUP PYTHON =======================
+
+mkdir *need_title*
+
+cd *need_title*
+
+virtualenv venv
+
+. venv/bin/activate
+
+pip install -r requirements.txt
+
+
+================= For Django ========================
+
+Allow port (if not root != 8000)
+Write in ALLOWED_HOST ip-server.
+sudo ufw allow 8001
+start -- 			python manage.py runserver 0.0.0.0:8001
+start with gunicorn -- 		gunicorn --bind 0.0.0.0:8001 web_kazan.wsgi
+
+================ For gunicorn ======================
+
+After setup:
+
+sudo vim /etc/systemd/system/gunicorn.socket
+
+Write: 
+
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/run/gunicorn.sock
+
+[Install]
+WantedBy=sockets.target
+
+Save and Next:
+
+sudo vim /etc/systemd/system/gunicorn.service
+
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=sammy
+Group=www-data
+WorkingDirectory=/home/sammy/myprojectdir
+ExecStart=/home/sammy/myprojectdir/myprojectenv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/gunicorn.sock \
+          myproject.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
+That's all, for check it:
+
+sudo journalctl -u gunicorn.socket
+
+
+================For Nginx=====================
+
+sudo vim /etc/nginx/sites-available/myproject
+
+erver {
+    listen 8001;
+    server_name 185.139.69.164;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/sammy/web_kazan;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
+
+sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+
+sudo nginx -t
+
+
+
+
