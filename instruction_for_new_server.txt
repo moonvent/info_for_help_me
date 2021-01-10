@@ -163,5 +163,28 @@ sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
 sudo nginx -t
 
 
+================For Webhook=====================
+
+openssl genrsa -out webhook_pkey.pem 2048
+
+openssl req -new -x509 -days 3650 -key webhook_pkey.pem -out webhook_cert.pem
+
+After that, entering:
+
+RU
+
+Moscow
+
+Moscow
+
+.
+
+.
+
+IP_ADDRESS_OF_YOUR_SERVER.0.0.1
+
+.
+
+==============================================
 
 
