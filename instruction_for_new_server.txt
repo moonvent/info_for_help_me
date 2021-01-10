@@ -17,7 +17,7 @@ ufw app list && ufw allow OpenSSH && ufw enable && ufw status
 
 ==Upgrade linux and install my soft.==
 
-sudo apt update && sudo apt update && sudo apt install vim tmux -y
+sudo apt update && sudo apt upgrade && sudo apt install vim tmux -y
 
 tmux new-session -s server
 
