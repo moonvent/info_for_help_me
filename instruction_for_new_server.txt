@@ -185,6 +185,71 @@ IP_ADDRESS_OF_YOUR_SERVER.0.0.1
 
 .
 
-==============================================
+===============================================
+================For Docker=====================
 
+sudo apt-get remove docker docker-engine docker.io containerd runc
 
+sudo apt-get update
+
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+    
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo apt-key fingerprint 0EBFCD88
+
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+sudo docker run hello-world
+
+===============================================
+
+============For create docker image============
+
+Ниже идёт докер файл:
+///////////////////////////////////////////////
+
+FROM python:3
+
+# устанавливаем параметры сборки
+RUN apt-get update && \
+	apt-get install -y gcc make apt-transport-https ca-certificates build-essential
+
+# проверяем окружение python
+RUN python3 --version
+RUN pip3 --version
+RUN apt-get install -y python-pip python-dev build-essential
+
+# задаем рабочую директорию для контейнера
+WORKDIR /parser_market_csgo
+
+# устанавливаем зависимости python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# копируем все файлы из корня проекта в рабочую директорию
+COPY . /parser_market_csgo
+RUN pip install -r requirements.txt
+
+# запускаем приложение Python
+CMD ["python3", "main.py"]
+
+////////////////////////////////////////////////
+
+Работа с докером только через sudo:
+
+sudo docker build -t keks(название имеджа) .(директория откуда пойдет компиляция)
+
+sudo docker run -it keks(название имеджа)
