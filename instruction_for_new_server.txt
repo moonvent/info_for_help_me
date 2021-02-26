@@ -253,3 +253,58 @@ CMD ["python3", "main.py"]
 sudo docker build -t keks(название имеджа) .(директория откуда пойдет компиляция)
 
 sudo docker run -it keks(название имеджа)
+
+===================================================
+
+============For Supervisor=========================
+
+sudo apt-get install supervisor
+sudo supervisord
+
+
+sudo service supervisor status
+
+sudo service supervisor start
+
+sudo vim /etc/supervisor/conf.d/{ название приложения }.conf
+
+[program:{ название приложения }]
+command=/home/sammy/parser_details/venv/bin/python -u main.py
+directory=/home/sammy/parser_details
+stdout_logfile=/home/sammy/parser_details/test_process_output.txt
+redirect_stderr=true
+user=sammy
+autostart=true
+autorestart=true
+
+После этого делаешь вот как:
+
+sudo supervisorctl
+
+supervisor > reread
+supervisor > add test_process
+supervisor > status
+
+Доп. параметры:
+
+reread : Reloads conf files
+add <program> : Adds a newly created conf file and starts the process
+status : Checks all status of programs managed by supervisor
+start <program> : Starts the program
+restart <program> : Restart the program
+tail -f <program> : Watch log file
+exit : Exits supervisorctl
+help : List commands
+
+
+Для подключения сайта:
+
+sudo vim /etc/supervisor/supervisord.conf
+
+[inet_http_server]
+port=0.0.0.0:9001
+username=1
+password=1
+
+После этого всего перезапускаем супервизор (sudo service supervisor restart)
+
