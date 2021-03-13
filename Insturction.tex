@@ -1,0 +1,292 @@
+% !TEX root = Insturction.tex
+\documentclass[14pt,a4paper,oneside]{extarticle}
+\usepackage[utf8]{inputenc} % указывает кодировку документа
+\usepackage[T2A]{fontenc} % указывает внутреннюю кодировку TeX 
+\usepackage[russian,english]{babel} % указывает язык документа
+\usepackage{amssymb,amsfonts,amsmath,cite,enumerate,float,indentfirst,pslatex,palatino,avant,color}
+\usepackage{graphicx} 
+\usepackage{hyperref}   % для работы ссылок
+\usepackage{lmodern}
+\usepackage{geometry} % Меняем поля страницы
+\usepackage{etoolbox}
+\usepackage{tabto}
+\usepackage[figurename=Рисунок]{caption}
+
+% блок ниже для точек в содержании (между названием секции и цифрой)
+\makeatletter
+\patchcmd\l@section{%
+  \nobreak\hfil\nobreak
+}{%
+  \nobreak
+  \leaders\hbox{%
+    $\m@th \mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$%
+  }%
+  \hfill
+  \nobreak
+}{}{\errmessage{\noexpand\l@section could not be patched}}
+\makeatother
+
+% блок ниже для работы ссылок
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+
+
+% блок ниже для удобного вывода картинки в формате: \imgh{длина картинки (150mm)}{название картинки (test.png)}{подпись к картинке (тестовая картинка)}
+\newcommand{\imgh}[3]
+{
+    \begin{figure}[h]
+    \center{\includegraphics[width=#1]{#2}}
+    \caption{#3}
+    \label{ris:#2}
+    \end{figure}
+}
+
+
+\renewcommand{\rmdefault}{cmr} % Шрифт с засечками
+\renewcommand{\sfdefault}{cmss} % Шрифт без засечек
+\renewcommand{\ttdefault}{cmtt} % Моноширинный шрифт
+\renewcommand{\theenumi}{\arabic{enumi}}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumi}{\arabic{enumi}}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\theenumii}{.\arabic{enumii}}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}.}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\theenumiii}{.\arabic{enumiii}}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}% Меняем везде перечисления на цифра.цифра
+
+
+\title{Инструкция}
+\author{Куркурин Никита}
+\date{ }
+
+% блок ниже выводит точку после цифры в названии глав и секций
+\renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+
+\usepackage{hyphenat}
+\hyphenation{ма-те-ма-ти-ка вос-ста-нав-ли-вать}
+
+\begin{document}
+
+
+    \maketitle
+
+    \renewcommand{\contentsname}{\center{Содержание}}\tableofcontents % это оглавление, которое генерируется автоматически
+
+    \newpage
+
+    \section{Подготовка сервера}
+
+        \subsection{Работа с пользователем}
+            \textbf{adduser sammy \&\& usermod -aG sudo sammy}\\
+            создание пользователя и наделение его правами администратора
+
+        \subsection{Фаервол}
+            \textbf{ufw app list \&\& ufw allow OpenSSH \&\& ufw enable \&\& ufw status}\\
+            Установка фаерловал и разрешение порта ssh, также, проверка его работоспо-\\собности\\
+
+        \LARGE Перезагрузить сервер и зайти под sammy
+
+        \normalsize
+        \subsection{Установка необходимого софта}
+            \textbf{sudo apt update \&\& sudo apt upgrade \&\& sudo apt install vim tmux -y} \\
+            Установка vim'a и tmux'a;
+        
+        \subsection{Установка Python}
+            \textbf{sudo apt install python3-pip python3-dev libpq-dev python3-virtualenv -y } \\
+        
+        \subsection{Установка MySQL, Nginx}
+            \textbf{sudo apt install nginx curl mysql-server -y}
+    
+    \newpage
+
+    \section{Настройка MySQL}
+
+        \subsection{Первоначальная настройка}
+
+            \noindent\textbf{sudo mysql\_secure\_installation}\\
+            Далее такая последовательность ответов:\\
+
+            \begin{itemize}
+                \item \textit{If system request about VALIDATE PASSWORD} - N\\
+                \item \textit{Password} - root\\
+                \item \textit{Remove anon} - Y\\
+                \item \textit{Dissallow} - \textbf{N} !!!\\
+                \item \textit{Remove test db} - Y\\
+                \item \textit{Reload priv.} - Y\\
+            \end{itemize}
+
+        \subsection{Работа с пользователем}
+
+            \subsubsection{Настройка рута}
+                \begin{itemize}
+                    \item \textbf{sudo mysql}
+                    \item \textbf{ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql\_native\_password BY 'ПАРОЛЬ;'}
+                    \item \textbf{FLUSH PRIVILEGES;}
+                    \item \textbf{exit;}
+                \end{itemize}
+
+            \subsection{Создаем нового пользователя}
+                \begin{itemize}
+                    \item \textbf{mysql -u root -p}
+                    \item \textbf{пароль который введен был в настройке}
+                    \item \textbf{CREATE USER 'sammy'@'localhost' IDENTIFIED BY 'ПАРОЛЬ ДЛЯ SAMMY';}
+                    \item \textbf{GRANT ALL PRIVILEGES ON *.* TO 'sammy'@'localhost' WITH GRANT OPTION;}
+                    \item \textbf{exit;}
+                    \item \textbf{systemctl status mysql.service}
+                \end{itemize}
+    
+    \newpage
+
+    \section{Django}
+
+        \subsection{Запуск на без сервера}
+            \begin{itemize}
+                \item \textbf{Allow port (if not root != 8000)}
+                \item \textbf{Write in ALLOWED\_HOST ip-server.}
+                \item \textbf{sudo ufw allow 8001}
+                \item start -- \textbf{python manage.py runserver 0.0.0.0:8001}
+                \item start with gunicorn -- \textbf{gunicorn --bind 0.0.0.0:8001 web\_kazan.wsgi}
+            \end{itemize}
+        
+        \subsection{Gunicorn}
+            \begin{itemize}
+                \item \textbf{sudo vim /etc/systemd/system/gunicorn.socket} \\ 
+                В этом файле пишем:\\\\
+                \texttt{\lbrack Unit\rbrack\\
+                Description=gunicorn socket\\
+                \\
+                \lbrack Socket\rbrack\\
+                ListenStream=/run/gunicorn.sock\\
+                \\
+                \lbrack Install\rbrack\\
+                WantedBy=sockets.target\\}
+
+                \item \textbf{sudo vim /etc/systemd/system/gunicorn.service} \\
+                В этом файле пишем:\\\\
+                \texttt{\lbrack Unit\rbrack\\
+                Description=gunicorn daemon\\
+                Requires=gunicorn.socket\\
+                After=network.target\\
+                \\
+                \lbrack Service\rbrack\\
+                User=sammy
+                Group=www-data \\
+                WorkingDirectory=/home/sammy/myprojectdir \\
+                ExecStart=/home/sammy/myprojectdir/myprojectenv/bin/gunicorn \textbackslash \\
+                        --access-logfile - \textbackslash \\
+                        --workers 3 \textbackslash \\
+                        --bind unix:/run/gunicorn.sock \textbackslash \\
+                        myproject.wsgi:application \\
+                \\
+                \lbrack Install\rbrack \\
+                WantedBy=multi-user.target\\}
+
+                \item \textbf{sudo journalctl -u gunicorn.socket}
+            \end{itemize}
+        
+    \newpage
+    \section{Nginx}
+        \begin{itemize}
+            \item \textbf{sudo vim /etc/nginx/sites-available/myproject} \\
+
+            \texttt{server \{ \\
+                    listen 8001;\\
+                    server\_name SERVER\_IP\_ADDRESS;\\
+                    \\
+                    location /static/ \{ \\
+                        root /home/sammy/web\_kazan; \\
+                    \} \\
+                    \\
+                    location / \{ \\
+                        include proxy\_params; \\
+                        proxy\_pass http://unix:/run/gunicorn.sock; \\
+                    \} \\
+                \} \\}
+            
+            \item \textbf{sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled}
+            \item \textbf{sudo nginx -t}
+        \end{itemize}
+
+    \newpage
+    \section{Генерация SSL сертификата}
+
+        \begin{itemize}
+            \item \textbf{openssl genrsa -out webhook\_pkey.pem 2048}
+            \item \textbf{openssl req -new -x509 -days 3650 -key webhook\_pkey.pem -out webhook\_cert.pem}
+            \item RU
+            \item Moscow
+            \item Moscow
+            \item .
+            \item .
+            \item IP\_ADDRESS
+            \item .
+        \end{itemize}
+    
+    \newpage
+    \section{Supervisor}
+
+        \subsection{Настройка}
+            \begin{itemize}
+                \item \textbf{sudo apt-get install supervisor}
+                \item \textbf{sudo supervisord}
+                \item \textbf{sudo service supervisor status}
+                \item \textbf{sudo service supervisor start}
+                \item \textbf{sudo vim /etc/supervisor/conf.d/APPLICATION\_TITLE.conf}\\
+
+                \texttt{
+                    [program:APPLICATION\_TITLE]\\
+                    command=/home/sammy/parser\_details/venv/bin/python -u main.py\\
+                    directory=/home/sammy/parser\_details\\
+                    stdout\_logfile=/home/sammy/parser\_details/logs.txt\\
+                    redirect\_stderr=true\\
+                    user=sammy\\
+                    autostart=true\\
+                    autorestart=true\\
+                }
+
+                \item \textbf{sudo supervisorctl} - заходим в супервизор
+                \item 
+                    \begin{itemize}
+                        \item \textbf{supervisor > reread} - обновление конфигов
+                        \item \textbf{supervisor > add APPLICATION\_TITLE} - добавление конфига в супервизор
+                        \item \textbf{supervisor > status} - просмотр статуса всех активных конфигов
+                    \end{itemize} 
+            \end{itemize}
+
+        \subsection{Доп. параметры}
+            \begin{itemize}
+                \item \textbf{reread : Reloads conf files}
+                \item \textbf{add <program> : Adds a newly created conf file and starts the process}
+                \item \textbf{status : Checks all status of programs managed by supervisor}
+                \item \textbf{start <program> : Starts the program}
+                \item \textbf{restart <program> : Restart the program}
+                \item \textbf{tail -f <program> : Watch log file}
+                \item \textbf{exit : Exits supervisorctl}
+                \item \textbf{help : List commands}
+            \end{itemize}
+
+        \subsection{Подключение сайта}
+        
+            \begin{itemize}
+                \item \textbf{sudo vim /etc/supervisor/supervisord.conf} \\
+                \texttt{ 
+                    \lbrack inet\_http\_server\rbrack\\
+                    port=0.0.0.0:9001\\
+                    username=1\\
+                    password=1
+                }
+                \item \textbf{sudo ufw allow 9001}
+                \item \textbf{sudo service supervisor restart}
+            \end{itemize}
+
+\end{document}
