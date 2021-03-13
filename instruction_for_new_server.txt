@@ -1,0 +1,310 @@
+====================================================
+
+==Create new user (for made all without root user) and give all privileges to
+new user:==
+
+adduser sammy && usermod -aG sudo sammy
+
+=====================================================
+
+==Setup filrewall:==
+
+ufw app list && ufw allow OpenSSH && ufw enable && ufw status
+
+!!!==Reload terminal and use SUDO ==!!!
+
+=====================================================
+
+==Upgrade linux and install my soft.==
+
+sudo apt update && sudo apt upgrade && sudo apt install vim tmux -y
+
+tmux new-session -s server
+
+==After create new session do this:==
+
+Ctrl + B + "
+
+=====================================================
+
+
+Install need instruments for python with NGINX:
+
+sudo apt install python3-pip python3-dev libpq-dev nginx curl mysql-server python3-virtualenv -y 
+
+=====================================================
+
+================= SETUP MYSQL =======================
+
+== After that, setup mysql ant try connect from navicat == 
+
+sudo mysql_secure_installation
+
+If system request about VALIDATE PASSWORD -- N
+
+password: root
+
+Remove anon: Y
+
+Disallow: N
+
+Remove test db: Y
+
+Reload priv.: Y
+
+sudo mysql
+
+SELECT user,authentication_string,plugin,host FROM mysql.user;
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+
+FLUSH PRIVILEGES;
+
+exit;
+
+mysql -u root -p
+
+password
+
+CREATE USER 'sammy'@'localhost' IDENTIFIED BY 'password';
+
+GRANT ALL PRIVILEGES ON *.* TO 'sammy'@'localhost' WITH GRANT OPTION;
+
+exit;
+
+systemctl status mysql.service
+
+================= SETUP PYTHON =======================
+
+mkdir *need_title*
+
+cd *need_title*
+
+virtualenv venv
+
+. venv/bin/activate
+
+pip install -r requirements.txt
+
+
+================= For Django ========================
+
+Allow port (if not root != 8000)
+Write in ALLOWED_HOST ip-server.
+sudo ufw allow 8001
+start -- 			python manage.py runserver 0.0.0.0:8001
+start with gunicorn -- 		gunicorn --bind 0.0.0.0:8001 web_kazan.wsgi
+
+================ For gunicorn ======================
+
+After setup:
+
+sudo vim /etc/systemd/system/gunicorn.socket
+
+Write: 
+
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/run/gunicorn.sock
+
+[Install]
+WantedBy=sockets.target
+
+Save and Next:
+
+sudo vim /etc/systemd/system/gunicorn.service
+
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=sammy
+Group=www-data
+WorkingDirectory=/home/sammy/myprojectdir
+ExecStart=/home/sammy/myprojectdir/myprojectenv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/gunicorn.sock \
+          myproject.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
+That's all, for check it:
+
+sudo journalctl -u gunicorn.socket
+
+
+================For Nginx=====================
+
+sudo vim /etc/nginx/sites-available/myproject
+
+erver {
+    listen 8001;
+    server_name 185.139.69.164;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/sammy/web_kazan;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
+
+sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+
+sudo nginx -t
+
+
+================For Webhook=====================
+
+openssl genrsa -out webhook_pkey.pem 2048
+
+openssl req -new -x509 -days 3650 -key webhook_pkey.pem -out webhook_cert.pem
+
+After that, entering:
+
+RU
+
+Moscow
+
+Moscow
+
+.
+
+.
+
+IP_ADDRESS_OF_YOUR_SERVER.0.0.1
+
+.
+
+===============================================
+================For Docker=====================
+
+sudo apt-get remove docker docker-engine docker.io containerd runc
+
+sudo apt-get update
+
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+    
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo apt-key fingerprint 0EBFCD88
+
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+sudo docker run hello-world
+
+===============================================
+
+============For create docker image============
+
+Ниже идёт докер файл:
+///////////////////////////////////////////////
+
+FROM python:3
+
+# устанавливаем параметры сборки
+RUN apt-get update && \
+	apt-get install -y gcc make apt-transport-https ca-certificates build-essential
+
+# проверяем окружение python
+RUN python3 --version
+RUN pip3 --version
+RUN apt-get install -y python-pip python-dev build-essential
+
+# задаем рабочую директорию для контейнера
+WORKDIR /parser_market_csgo
+
+# устанавливаем зависимости python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# копируем все файлы из корня проекта в рабочую директорию
+COPY . /parser_market_csgo
+RUN pip install -r requirements.txt
+
+# запускаем приложение Python
+CMD ["python3", "main.py"]
+
+////////////////////////////////////////////////
+
+Работа с докером только через sudo:
+
+sudo docker build -t keks(название имеджа) .(директория откуда пойдет компиляция)
+
+sudo docker run -it keks(название имеджа)
+
+===================================================
+
+============For Supervisor=========================
+
+sudo apt-get install supervisor
+sudo supervisord
+
+
+sudo service supervisor status
+
+sudo service supervisor start
+
+sudo vim /etc/supervisor/conf.d/{ название приложения }.conf
+
+[program:{ название приложения }]
+command=/home/sammy/parser_details/venv/bin/python -u main.py
+directory=/home/sammy/parser_details
+stdout_logfile=/home/sammy/parser_details/test_process_output.txt
+redirect_stderr=true
+user=sammy
+autostart=true
+autorestart=true
+
+После этого делаешь вот как:
+
+sudo supervisorctl
+
+supervisor > reread
+supervisor > add test_process
+supervisor > status
+
+Доп. параметры:
+
+reread : Reloads conf files
+add <program> : Adds a newly created conf file and starts the process
+status : Checks all status of programs managed by supervisor
+start <program> : Starts the program
+restart <program> : Restart the program
+tail -f <program> : Watch log file
+exit : Exits supervisorctl
+help : List commands
+
+
+Для подключения сайта:
+
+sudo vim /etc/supervisor/supervisord.conf
+
+[inet_http_server]
+port=0.0.0.0:9001
+username=1
+password=1
+
+После этого всего перезапускаем супервизор (sudo service supervisor restart)
+
